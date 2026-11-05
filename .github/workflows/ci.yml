@@ -18,7 +18,7 @@ jobs:
     name: C build (GCC, C11, -Werror)
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install toolchain
         run: |
@@ -38,7 +38,7 @@ jobs:
           cmake --build cmake-build
 
       - name: Upload receiver binary
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: gps_receiver-linux
           path: gps-receiver-simulator/build/gps_receiver
@@ -48,7 +48,7 @@ jobs:
     name: C unit tests
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install toolchain
         run: |
@@ -63,9 +63,9 @@ jobs:
     name: Python unit tests
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -77,9 +77,9 @@ jobs:
     name: Integration tests (Python -> C)
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -96,9 +96,9 @@ jobs:
     name: ASan + UBSan
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -115,7 +115,7 @@ jobs:
     name: Code quality (warnings + cppcheck)
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install tools
         run: |
