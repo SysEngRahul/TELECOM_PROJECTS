@@ -82,11 +82,19 @@ jobs:
           name: release-dist
           path: dist
 
-      - name: Create release
+      - name: Create or update GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
         run: |
-          gh release create "${GITHUB_REF_NAME}" dist/* \
-            --title "${GITHUB_REF_NAME}" \
-            --generate-notes
+          if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
+            echo "Release already exists. Updating release assets."
+
+            gh release upload "${GITHUB_REF_NAME}" dist/* --clobber
+          else
+            echo "Creating new GitHub release."
+
+            gh release create "${GITHUB_REF_NAME}" dist/* \
+              --title "${GITHUB_REF_NAME}" \
+              --generate-notes
+          fi
