@@ -38,7 +38,7 @@ jobs:
           cmake --build cmake-build
 
       - name: Upload receiver binary
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: gps_receiver-linux
           path: gps-receiver-simulator/build/gps_receiver
