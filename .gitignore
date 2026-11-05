@@ -1,0 +1,28 @@
+# OS/editor files
+.DS_Store
+Thumbs.db
+*~
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# C/C++ build artifacts
+build/
+cmake-build/
+CMakeFiles/
+CMakeCache.txt
+*.o
+*.a
+*.so
+*.d
+
+# Generated results and archives
+results/*
+*.zip
+*.tar.gz
+
+# Keep intentional placeholders
+!gps-receiver-simulator/results/.gitkeep

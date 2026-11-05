@@ -1,0 +1,9 @@
+build/
+cmake-build/
+__pycache__/
+*.pyc
+.venv/
+results/*
+!results/.gitkeep
+*.o
+*.d

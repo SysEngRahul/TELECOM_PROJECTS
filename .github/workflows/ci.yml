@@ -1,0 +1,131 @@
+name: GPS Receiver Simulator CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gps-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: C build (GCC, C11, -Werror)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake
+
+      - name: Build with Make (release and debug)
+        working-directory: gps-receiver-simulator
+        run: |
+          make
+          make debug
+
+      - name: Build with CMake
+        working-directory: gps-receiver-simulator
+        run: |
+          cmake -S . -B cmake-build -DCMAKE_BUILD_TYPE=Release
+          cmake --build cmake-build
+
+      - name: Upload receiver binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: gps_receiver-linux
+          path: gps-receiver-simulator/build/gps_receiver
+          if-no-files-found: error
+
+  c-tests:
+    name: C unit tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential
+
+      - name: Run C unit tests
+        working-directory: gps-receiver-simulator
+        run: make test-c
+
+  python-tests:
+    name: Python unit tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run Python unit tests
+        working-directory: gps-receiver-simulator
+        run: make test-python
+
+  integration:
+    name: Integration tests (Python -> C)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential
+
+      - name: Build receiver and run end-to-end tests
+        working-directory: gps-receiver-simulator
+        run: make test-integration
+
+  sanitizers:
+    name: ASan + UBSan
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential
+
+      - name: Run unit and integration tests under sanitizers
+        working-directory: gps-receiver-simulator
+        run: make sanitize
+
+  quality:
+    name: Code quality (warnings + cppcheck)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cppcheck
+
+      - name: Strict warnings build
+        working-directory: gps-receiver-simulator
+        run: make clean all
+
+      - name: Static analysis
+        working-directory: gps-receiver-simulator
+        run: make lint

@@ -1,0 +1,92 @@
+name: GPS Receiver Simulator Release
+
+on:
+  push:
+    tags:
+      - "gps-receiver-simulator-v*"
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    name: Build, test and package
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential
+
+      - name: Build and run the full test suite
+        working-directory: gps-receiver-simulator
+        run: |
+          make clean
+          make
+          make test
+
+      - name: Validate semantic version tag
+        run: |
+          if [[ ! "$GITHUB_REF_NAME" =~ ^gps-receiver-simulator-v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Expected a tag such as gps-receiver-simulator-v1.0.0"
+            exit 1
+          fi
+
+      - name: Package release archive
+        run: |
+          PROJECT_DIR="gps-receiver-simulator"
+          VERSION="${GITHUB_REF_NAME#gps-receiver-simulator-}"
+          PKG="gps-receiver-simulator-${VERSION}-linux-x86_64"
+
+          mkdir -p "dist/${PKG}"
+
+          cp "${PROJECT_DIR}/build/gps_receiver" "dist/${PKG}/"
+          cp "${PROJECT_DIR}/README.md" "dist/${PKG}/"
+          cp "${PROJECT_DIR}/LICENSE" "dist/${PKG}/"
+          cp -r \
+            "${PROJECT_DIR}/simulator" \
+            "${PROJECT_DIR}/dashboard" \
+            "${PROJECT_DIR}/config" \
+            "${PROJECT_DIR}/data" \
+            "${PROJECT_DIR}/docs" \
+            "dist/${PKG}/"
+
+          tar -C dist -czf "dist/${PKG}.tar.gz" "${PKG}"
+          (
+            cd dist
+            sha256sum "${PKG}.tar.gz" > "${PKG}.tar.gz.sha256"
+          )
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-dist
+          path: dist/*.tar.gz*
+          if-no-files-found: error
+
+  publish:
+    name: Publish GitHub Release
+    needs: build-and-test
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-dist
+          path: dist
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" dist/* \
+            --title "${GITHUB_REF_NAME}" \
+            --generate-notes

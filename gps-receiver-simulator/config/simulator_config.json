@@ -1,0 +1,19 @@
+{
+  "start": {"latitude": 28.6139, "longitude": 77.2090, "altitude_m": 215.0},
+  "motion": {"speed_knots": 22.4, "heading_deg": 84.4},
+  "output": {
+    "count": 10,
+    "interval_s": 1.0,
+    "talker": "GP",
+    "sentences": ["rmc", "gga"],
+    "satellites": 8,
+    "hdop": 0.9
+  },
+  "faults": {
+    "seed": 42,
+    "probabilities": {},
+    "delay_s": 0.5,
+    "repeat_count": 2,
+    "fix_loss": null
+  }
+}
